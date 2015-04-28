@@ -1,0 +1,16 @@
+{
+  "name": "fxos-achievements-service",
+  "description": "Achievements service for embedding achievements support into Gaia apps",
+  "version": "0.0.1",
+  "main": "achievements-service.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:fxos/achievements-service.git"
+  },
+  "license": "MPL",
+  "dependencies": {
+    "gulp": "3.8.x",
+    "gulp-6to5": "^1.0.2"
+  }
+}
