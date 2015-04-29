@@ -15,6 +15,6 @@
     "test"
   ],
   "dependencies": {
-    "fxos-settings-utils": "https://github.com/fxos/settings-utils.git#v0.0.7"
+    "fxos-settings-utils": "https://github.com/fxos/settings-utils.git#v0.0.9"
   }
 }
