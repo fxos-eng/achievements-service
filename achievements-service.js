@@ -55,16 +55,14 @@ class Achievement {
 export default class AchievementsService {
   /**
    * Create a new achievement service
-   * @param {JSON} options that include:
-   *          {String} name Name of the issuing app
-   *          {String} description Description of the issuing app
-   *          {?URL|DataURL} image Optional icon image of the issuing app
    */
-  constructor({name, url, description, image}) {
-    this.appName = name;
-    this.appDescription = description;
-    this.appURL = url || window.location.origin;
-    this.appImage = image || ICONS.defaultApp;
+  constructor() {
+    this.app = new Promise((resolve, reject) => {
+      let request = window.navigator.mozApps.getSelf();
+      request.onsuccess = () => { resolve(request.result); };
+      request.onerror = () => { reject(request.error); };
+    });
+
     this.achievementClasses = {};
   }
 

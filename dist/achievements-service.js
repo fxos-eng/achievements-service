@@ -60,20 +60,18 @@ define(["exports", "fxos-settings-utils/dist/settings-utils"], function (exports
     var AchievementsService =
     /**
      * Create a new achievement service
-     * @param {JSON} options that include:
-     *          {String} name Name of the issuing app
-     *          {String} description Description of the issuing app
-     *          {?URL|DataURL} image Optional icon image of the issuing app
      */
-    function AchievementsService(_ref2) {
-      var name = _ref2.name;
-      var url = _ref2.url;
-      var description = _ref2.description;
-      var image = _ref2.image;
-      this.appName = name;
-      this.appDescription = description;
-      this.appURL = url || window.location.origin;
-      this.appImage = image || ICONS.defaultApp;
+    function AchievementsService() {
+      this.app = new Promise(function (resolve, reject) {
+        var request = window.navigator.mozApps.getSelf();
+        request.onsuccess = function () {
+          resolve(request.result);
+        };
+        request.onerror = function () {
+          reject(request.error);
+        };
+      });
+
       this.achievementClasses = {};
     };
 
