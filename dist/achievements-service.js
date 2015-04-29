@@ -110,8 +110,6 @@ define(["exports", "fxos-settings-utils/dist/settings-utils"], function (exports
       }).then(function (achievements) {
         // Save new achievement in settings.
         return SettingsHelper.set({ achievements: achievements });
-      }, function (reason) {
-        return Promise.reject(reason);
       }).then(function () {
         // Send a Notification via WebAPI to be handled by the Gaia::System
         new Notification(achievement.name, {
@@ -119,6 +117,8 @@ define(["exports", "fxos-settings-utils/dist/settings-utils"], function (exports
           icon: achievement.image,
           tag: achievement.issuedOn
         });
+      })["catch"](function (reason) {
+        return console.warn(reason);
       });
     };
 

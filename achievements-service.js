@@ -112,8 +112,6 @@ export default class AchievementsService {
     }).then(achievements => {
       // Save new achievement in settings.
       return SettingsHelper.set({ 'achievements': achievements });
-    }, reason => {
-      return Promise.reject(reason);
     }).then(() => {
       // Send a Notification via WebAPI to be handled by the Gaia::System
       new Notification(achievement.name, {
@@ -121,6 +119,6 @@ export default class AchievementsService {
         icon: achievement.image,
         tag: achievement.issuedOn
       });
-    });
+    }).catch(reason => console.warn(reason));
   }
 }
