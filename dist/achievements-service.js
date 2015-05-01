@@ -110,11 +110,21 @@ define(["exports", "fxos-settings-utils/dist/settings-utils"], function (exports
         return SettingsHelper.set({ achievements: achievements });
       }).then(function () {
         // Send a Notification via WebAPI to be handled by the Gaia::System
-        new Notification(achievement.name, {
+        var notification = new Notification(achievement.name, {
           body: achievement.description,
           icon: achievement.image,
           tag: achievement.issuedOn
         });
+
+        notification.onclick = function () {
+          var activity = new window.MozActivity({
+            name: "view",
+            data: { type: "achievement" }
+          });
+          activity.onsuccess = function () {
+            notification.close();
+          };
+        };
       })["catch"](function (reason) {
         return console.warn(reason);
       });

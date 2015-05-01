@@ -83,7 +83,7 @@ export default class AchievementsService {
    * Reward an achievement and store a record in 'achievements' setting.
    * @param  {String} criteria URL of the criteria for earning the achievement
    * @param  {String} evidence A URN of the evidence of achievement unlocked
-   * @return {Promise} A promise of achivement rewarded
+   * @return {Promise} A promise of achievement rewarded
    */
   reward(criteria, evidence) {
     if (!evidence) {
@@ -112,11 +112,19 @@ export default class AchievementsService {
       return SettingsHelper.set({ 'achievements': achievements });
     }).then(() => {
       // Send a Notification via WebAPI to be handled by the Gaia::System
-      new Notification(achievement.name, {
+      let notification = new Notification(achievement.name, {
         body: achievement.description,
         icon: achievement.image,
         tag: achievement.issuedOn
       });
+
+      notification.onclick = () => {
+        let activity = new window.MozActivity({
+          name: 'view',
+          data: { type: 'achievement' }
+        });
+        activity.onsuccess = () => { notification.close(); };
+      };
     }).catch(reason => console.warn(reason));
   }
 }
