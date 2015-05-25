@@ -26,6 +26,7 @@ class ImageHelper {
     return ImageHelper.getImage(aSrc).then(image => {
       try {
         let canvas = document.createElement('canvas');
+        canvas.height = canvas.width = DEFAULT_IMAGE_SIZE;
         let context = canvas.getContext('2d');
         let dataUrl;
 

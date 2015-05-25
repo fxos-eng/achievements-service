@@ -34,6 +34,7 @@ define(["exports", "fxos-settings-utils/dist/settings-utils"], function (exports
       return ImageHelper.getImage(aSrc).then(function (image) {
         try {
           var canvas = document.createElement("canvas");
+          canvas.height = canvas.width = DEFAULT_IMAGE_SIZE;
           var context = canvas.getContext("2d");
           var dataUrl;
 
