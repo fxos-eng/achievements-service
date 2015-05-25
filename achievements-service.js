@@ -29,7 +29,7 @@ class ImageHelper {
         let context = canvas.getContext('2d');
         let dataUrl;
 
-        context.drawImage(image, DEFAULT_IMAGE_SIZE, DEFAULT_IMAGE_SIZE);
+        context.drawImage(image, 0, 0, DEFAULT_IMAGE_SIZE, DEFAULT_IMAGE_SIZE);
         dataUrl = canvas.toDataURL();
 
         // Clean up.
@@ -82,7 +82,7 @@ export default class AchievementsService {
     }).then(achievements => Promise.all([
       ImageHelper.generateImageDataURL(image),
       SettingsHelper.set({ 'achievements': achievements })
-    ])).then(image => {
+    ])).then(([image]) => {
       // Send a Notification via WebAPI to be handled by the Gaia::System
       let notification = new Notification(name, {
         body: description,
