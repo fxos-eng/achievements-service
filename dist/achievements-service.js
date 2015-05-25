@@ -1,133 +1,95 @@
 define(["exports", "fxos-settings-utils/dist/settings-utils"], function (exports, _fxosSettingsUtilsDistSettingsUtils) {
   "use strict";
 
-  var _classProps = function (child, staticProps, instanceProps) {
-    if (staticProps) Object.defineProperties(child, staticProps);
-    if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-  };
-
-  "use strict";
-
   var SettingsHelper = _fxosSettingsUtilsDistSettingsUtils.SettingsHelper;
-  var Achievement = (function () {
-    var Achievement =
-    /**
-     * Create an avhievement class.
-     * @param {JSON} options    include achievement name, description, criteria,
-     *                          and optional image and tags
-     * @param {App} app issuing app
-     */
-    function Achievement(_ref, app) {
-      var name = _ref.name;
-      var description = _ref.description;
-      var criteria = _ref.criteria;
-      var image = _ref.image;
-      var tags = _ref.tags;
-      this.name = name;
-      this.description = description;
-      this.image = image;
-      this.criteria = criteria;
-      this.tags = tags;
-      this.issuer = app.url;
-    };
 
-    Achievement.prototype.create = function (evidence) {
-      var _this = this;
-      return this.issuer.then(function (issuer) {
-        return Object.assign({}, {
-          name: _this.name,
-          description: _this.description,
-          achievement: _this.criteria,
-          image: _this.image,
-          issuer: issuer,
-          tags: _this.tags,
-          uid: "achievement" + Math.round(Math.random() * 100000000),
-          recipient: {}, // TODO
-          issuedOn: Date.now(),
-          evidence: evidence
-        });
+
+  var DEFAULT_IMAGE_SIZE = 64;
+
+  var ImageHelper = (function () {
+    var ImageHelper = function ImageHelper() {};
+
+    ImageHelper.getImage = function (aSrc) {
+      return new Promise(function (resolve, reject) {
+        var image = new Image();
+        image.src = aSrc;
+        image.onload = function () {
+          return resolve(image);
+        };
+        image.onerror = function (reason) {
+          return reject(reason);
+        };
+      })["catch"](function (reason) {
+        return console.warn("Could not load an achievement image:", reason);
       });
     };
 
-    return Achievement;
-  })();
+    ImageHelper.generateImageDataURL = function (aSrc) {
+      return ImageHelper.getImage(aSrc).then(function (image) {
+        try {
+          var canvas = document.createElement("canvas");
+          var context = canvas.getContext("2d");
+          var dataUrl;
 
-  var App = (function () {
-    var App = function App() {
-      this.app = new Promise(function (resolve, reject) {
-        var request = window.navigator.mozApps.getSelf();
-        request.onsuccess = function () {
-          resolve(request.result);
-        };
-        request.onerror = function () {
-          reject(request.error);
-        };
-      });
-    };
+          context.drawImage(image, DEFAULT_IMAGE_SIZE, DEFAULT_IMAGE_SIZE);
+          dataUrl = canvas.toDataURL();
 
-    _classProps(App, null, {
-      url: {
-        get: function () {
-          return this.app.then(function (app) {
-            return app.manifestURL;
-          });
+          // Clean up.
+          canvas.width = canvas.height = 0;
+          canvas = null;
+
+          return dataUrl;
+        } catch (e) {
+          return Promise.reject("Could not convert image to Data URL.");
         }
-      }
-    });
+      })["catch"](function (reason) {
+        return console.warn(reason);
+      });
+    };
 
-    return App;
+    return ImageHelper;
   })();
 
   var AchievementsService = (function () {
-    var AchievementsService =
-    /**
-     * Create a new achievement service
-     */
-    function AchievementsService() {
-      this.app = new App();
-      this.achievementClasses = {};
-    };
+    var AchievementsService = function AchievementsService() {};
 
-    AchievementsService.prototype.register = function (options) {
-      if (!options.criteria) {
-        console.warn("No criteria specified");
-        return;
-      }
-
-      if (this.achievementClasses[options.criteria]) {
-        console.warn("Achievement class is already registered");
-        return;
-      }
-
-      this.achievementClasses[options.criteria] = new Achievement(options, this.app);
-    };
-
-    AchievementsService.prototype.reward = function (criteria, evidence) {
+    AchievementsService.prototype.reward = function (_ref) {
+      var criteria = _ref.criteria;
+      var evidence = _ref.evidence;
+      var name = _ref.name;
+      var description = _ref.description;
+      var image = _ref.image;
       if (!evidence) {
-        return Promise.reject("Evidence is not provided");
+        return Promise.reject("Evidence is not provided.");
       }
 
-      var achievementClass = this.achievementClasses[criteria];
-      if (!achievementClass) {
-        return Promise.reject("Achievement class is not registered");
-      }
-
-      var newAchievement, oldAchievements;
+      var issuedOn;
       return SettingsHelper.get("achievements", {}).then(function (achievements) {
-        oldAchievements = achievements;
-        return criteria in oldAchievements ? Promise.reject("Achevement is already rewarded") : achievementClass.create(evidence);
-      }).then(function (achievement) {
-        newAchievement = achievement;
-        oldAchievements[criteria] = newAchievement;
-        return oldAchievements;
+        var achievement = achievements.find(function (achievement) {
+          return achievement.criteria === criteria;
+        });
+
+        if (!achievement) {
+          return Promise.reject("Achievement is not registered.");
+        }
+        if (achievement.evidence) {
+          return Promise.reject("Achievement is already awarded.");
+        }
+
+        achievement.evidence = evidence;
+        achievement.uid = "achievement" + Math.round(Math.random() * 100000000);
+        achievement.issuedOn = issuedOn = Date.now();
+        achievement.recipient = {}; // TODO
+
+        return achievements;
       }).then(function (achievements) {
-        return SettingsHelper.set({ achievements: achievements });
-      }).then(function () {
+        return Promise.all([ImageHelper.generateImageDataURL(image), SettingsHelper.set({ achievements: achievements })]);
+      }).then(function (image) {
         // Send a Notification via WebAPI to be handled by the Gaia::System
-        var notification = new Notification(newAchievement.name, {
-          body: newAchievement.description,
-          icon: newAchievement.image,
-          tag: newAchievement.issuedOn
+        var notification = new Notification(name, {
+          body: description,
+          icon: image,
+          tag: issuedOn
         });
 
         notification.onclick = function () {
@@ -135,10 +97,7 @@ define(["exports", "fxos-settings-utils/dist/settings-utils"], function (exports
             name: "configure",
             data: {
               target: "device",
-              section: "achievement-details",
-              options: {
-                achievement: newAchievement
-              }
+              section: "achievements"
             }
           });
           activity.onsuccess = activity.onerror = function () {
