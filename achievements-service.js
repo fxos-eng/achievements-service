@@ -1,8 +1,7 @@
-'use strict';
-
 /* global Notification, console */
 
-import { SettingsHelper } from 'fxos-settings-utils/dist/settings-utils';
+import { SettingsHelper } from
+  'components/fxos-settings-utils/dist/settings-utils';
 
 const DEFAULT_IMAGE_SIZE = 64;
 

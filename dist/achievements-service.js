@@ -1,13 +1,11 @@
-define(["exports", "fxos-settings-utils/dist/settings-utils"], function (exports, _fxosSettingsUtilsDistSettingsUtils) {
+define(["exports", "components/fxos-settings-utils/dist/settings-utils"], function (exports, _componentsFxosSettingsUtilsDistSettingsUtils) {
   "use strict";
 
   var _toArray = function (arr) {
     return Array.isArray(arr) ? arr : Array.from(arr);
   };
 
-  "use strict";
-
-  var SettingsHelper = _fxosSettingsUtilsDistSettingsUtils.SettingsHelper;
+  var SettingsHelper = _componentsFxosSettingsUtilsDistSettingsUtils.SettingsHelper;
 
 
   var DEFAULT_IMAGE_SIZE = 64;
