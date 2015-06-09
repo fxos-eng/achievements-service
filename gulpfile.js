@@ -21,3 +21,8 @@ gulp.task('to5', function () {
 });
 
 gulp.task('default', ['to5']);
+
+/**
+ * Runs travis tests
+ */
+gulp.task('travis', ['to5']);
