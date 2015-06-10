@@ -2,9 +2,8 @@
 
 /* global Notification, console */
 
-import { SettingsHelper } from 'fxos-settings-utils/dist/settings-utils';
-
 const DEFAULT_IMAGE_SIZE = 64;
+const MOZ_SETTINGS_NOT_AVAILABLE_MSG = 'navigator.mozSettings is not available';
 
 class ImageHelper {
   static getImage(aSrc) {
@@ -42,6 +41,45 @@ class ImageHelper {
         return Promise.reject('Could not convert image to Data URL.');
       }
     }).catch(reason => console.warn(reason));
+  }
+}
+
+class SettingsHelper {
+  static get(name, defaultValue) {
+    if (!name) {
+      return Promise.reject('Setting name is missing');
+    }
+
+    if (!navigator.mozSettings) {
+      console.warn(MOZ_SETTINGS_NOT_AVAILABLE_MSG);
+      return Promise.reject(MOZ_SETTINGS_NOT_AVAILABLE_MSG);
+    }
+
+    return new Promise((resolve, reject) => {
+      let setting = navigator.mozSettings.createLock().get(name, defaultValue);
+      setting.onsuccess = () => {
+        let settingValue = setting.result[name] || defaultValue;
+        resolve(settingValue);
+      };
+      setting.onerror = () => { reject(setting.error); };
+    });
+  }
+
+  static set(settings) {
+    if (!settings) {
+      return Promise.reject('Settings are missing');
+    }
+
+    if (!navigator.mozSettings) {
+      console.warn(MOZ_SETTINGS_NOT_AVAILABLE_MSG);
+      return Promise.reject(MOZ_SETTINGS_NOT_AVAILABLE_MSG);
+    }
+
+    return new Promise((resolve, reject) => {
+      let result = navigator.mozSettings.createLock().set(settings);
+      result.onsuccess = () => { resolve(result.result); };
+      result.onerror = () => { reject(result.error); };
+    });
   }
 }
 

@@ -1,7 +1,7 @@
 {
   "name": "fxos-achievements-service",
   "description": "Achievements service for embedding achievements support into Gaia apps",
-  "version": "0.0.1",
+  "version": "0.0.14",
   "main": "achievements-service.js",
   "scripts": {},
   "repository": {

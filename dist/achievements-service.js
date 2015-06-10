@@ -1,4 +1,4 @@
-define(["exports", "fxos-settings-utils/dist/settings-utils"], function (exports, _fxosSettingsUtilsDistSettingsUtils) {
+define(["exports"], function (exports) {
   "use strict";
 
   var _toArray = function (arr) {
@@ -7,10 +7,10 @@ define(["exports", "fxos-settings-utils/dist/settings-utils"], function (exports
 
   "use strict";
 
-  var SettingsHelper = _fxosSettingsUtilsDistSettingsUtils.SettingsHelper;
-
+  /* global Notification, console */
 
   var DEFAULT_IMAGE_SIZE = 64;
+  var MOZ_SETTINGS_NOT_AVAILABLE_MSG = "navigator.mozSettings is not available";
 
   var ImageHelper = (function () {
     var ImageHelper = function ImageHelper() {};
@@ -55,6 +55,55 @@ define(["exports", "fxos-settings-utils/dist/settings-utils"], function (exports
     };
 
     return ImageHelper;
+  })();
+
+  var SettingsHelper = (function () {
+    var SettingsHelper = function SettingsHelper() {};
+
+    SettingsHelper.get = function (name, defaultValue) {
+      if (!name) {
+        return Promise.reject("Setting name is missing");
+      }
+
+      if (!navigator.mozSettings) {
+        console.warn(MOZ_SETTINGS_NOT_AVAILABLE_MSG);
+        return Promise.reject(MOZ_SETTINGS_NOT_AVAILABLE_MSG);
+      }
+
+      return new Promise(function (resolve, reject) {
+        var setting = navigator.mozSettings.createLock().get(name, defaultValue);
+        setting.onsuccess = function () {
+          var settingValue = setting.result[name] || defaultValue;
+          resolve(settingValue);
+        };
+        setting.onerror = function () {
+          reject(setting.error);
+        };
+      });
+    };
+
+    SettingsHelper.set = function (settings) {
+      if (!settings) {
+        return Promise.reject("Settings are missing");
+      }
+
+      if (!navigator.mozSettings) {
+        console.warn(MOZ_SETTINGS_NOT_AVAILABLE_MSG);
+        return Promise.reject(MOZ_SETTINGS_NOT_AVAILABLE_MSG);
+      }
+
+      return new Promise(function (resolve, reject) {
+        var result = navigator.mozSettings.createLock().set(settings);
+        result.onsuccess = function () {
+          resolve(result.result);
+        };
+        result.onerror = function () {
+          reject(result.error);
+        };
+      });
+    };
+
+    return SettingsHelper;
   })();
 
   var AchievementsService = (function () {
